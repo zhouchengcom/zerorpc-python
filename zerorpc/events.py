@@ -27,7 +27,7 @@ from __future__ import absolute_import
 from builtins import str
 from builtins import range
 
-import msgpack
+import json
 import gevent.pool
 import gevent.queue
 import gevent.event
@@ -205,14 +205,12 @@ class Event(object):
 
     def pack(self):
         payload = (self._header, self._name, self._args)
-        r = msgpack.Packer(use_bin_type=True).pack(payload)
+        r = json.dumps(payload)
         return r
 
     @staticmethod
     def unpack(blob):
-        unpacker = msgpack.Unpacker(encoding='utf-8')
-        unpacker.feed(blob)
-        unpacked_msg = unpacker.unpack()
+        unpacked_msg = json.loads(blob)
 
         try:
             (header, name, args) = unpacked_msg
