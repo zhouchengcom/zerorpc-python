@@ -43,7 +43,7 @@ from .channel_base import ChannelBase
 
 
 def get_pyzmq_frame_buffer(frame):
-    return frame.tobytes()
+    return frame.buffer.tobytes()
 
 # gevent <= 1.1.0.rc5 is missing the Python3 __next__ method.
 if sys.version_info >= (3, 0) and gevent.version_info <= (1, 1, 0, 'rc', '5'):
