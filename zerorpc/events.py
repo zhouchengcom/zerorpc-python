@@ -27,7 +27,7 @@ from __future__ import absolute_import
 from builtins import str
 from builtins import range
 
-import json
+import msgpack
 import gevent.pool
 import gevent.queue
 import gevent.event
@@ -42,12 +42,8 @@ from .context import Context
 from .channel_base import ChannelBase
 
 
-if sys.version_info < (2, 7):
-    def get_pyzmq_frame_buffer(frame):
-        return frame.buffer[:]
-else:
-    def get_pyzmq_frame_buffer(frame):
-        return frame.buffer
+def get_pyzmq_frame_buffer(frame):
+    return frame.tobytes()
 
 # gevent <= 1.1.0.rc5 is missing the Python3 __next__ method.
 if sys.version_info >= (3, 0) and gevent.version_info <= (1, 1, 0, 'rc', '5'):
@@ -205,12 +201,14 @@ class Event(object):
 
     def pack(self):
         payload = (self._header, self._name, self._args)
-        r = json.dumps(payload)
+        r = msgpack.Packer(use_bin_type=True).pack(payload)
         return r
 
     @staticmethod
     def unpack(blob):
-        unpacked_msg = json.loads(blob)
+        unpacker = msgpack.Unpacker(encoding='utf-8')
+        unpacker.feed(blob)
+        unpacked_msg = unpacker.unpack()
 
         try:
             (header, name, args) = unpacked_msg
