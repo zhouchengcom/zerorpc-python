@@ -40,10 +40,18 @@ from . import gevent_zmq as zmq
 from .exceptions import TimeoutExpired
 from .context import Context
 from .channel_base import ChannelBase
+import platform    
 
-
-def get_pyzmq_frame_buffer(frame):
-    return frame.buffer.tobytes()
+if platform.python_implementation() == 'PyPy':
+    def get_pyzmq_frame_buffer(frame):
+        return frame.buffer.tobytes()
+else:
+    if sys.version_info < (2, 7):
+        def get_pyzmq_frame_buffer(frame):
+            return frame.buffer[:]
+    else:
+        def get_pyzmq_frame_buffer(frame):
+            return frame.buffer
 
 # gevent <= 1.1.0.rc5 is missing the Python3 __next__ method.
 if sys.version_info >= (3, 0) and gevent.version_info <= (1, 1, 0, 'rc', '5'):
